@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Фізика • 11 клас — Інтерференція і дифракція світла</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow-x:hidden;}
+body{font-family:'IBM Plex Sans',sans-serif;background:linear-gradient(135deg,#0a1628 0%,#1a237e 50%,#0d47a1 100%);background-attachment:fixed;color:#fff;min-height:100vh;display:flex;flex-direction:column;touch-action:manipulation;}
+@media(pointer:coarse),(max-width:700px){body{background-attachment:scroll;}}
+canvas#particles{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;}
+.glass{background:rgba(255,255,255,0.08);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.15);border-radius:20px;padding:2rem;}
+@media(pointer:coarse),(max-width:700px){.glass{backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);padding:1.2rem;border-radius:14px;}}
+.screen{display:none;flex-direction:column;align-items:center;justify-content:flex-start;padding:2rem 1rem;min-height:100vh;position:relative;z-index:1;}
+.screen.active{display:flex;}
+.screen-content{width:100%;max-width:700px;margin:auto;display:flex;flex-direction:column;gap:1.2rem;}
+h1{font-family:'Unbounded',sans-serif;font-size:1.8rem;text-align:center;line-height:1.3;margin-bottom:0.5rem;}
+h2{font-family:'Unbounded',sans-serif;font-size:1.4rem;text-align:center;margin-bottom:0.5rem;}
+.subtitle{text-align:center;opacity:0.8;font-size:0.95rem;margin-bottom:1rem;}
+.chips{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin:1rem 0;}
+.chip{background:rgba(100,181,246,0.9);color:#fff;font-weight:600;font-size:0.95rem;padding:8px 14px;border-radius:20px;text-shadow:0 1px 2px rgba(0,0,0,0.3);white-space:nowrap;}
+.chip.topic{background:rgba(255,152,0,0.9);}
+.chip.sub-basic{background:rgba(76,175,80,0.85);}
+.chip.sub-grating{background:rgba(33,150,243,0.85);}
+.chip.sub-cond{background:rgba(156,39,176,0.85);}
+.chip.sub-app{background:rgba(255,87,34,0.85);}
+input[type="text"]{width:100%;padding:14px 16px;border:2px solid rgba(255,255,255,0.2);border-radius:12px;background:rgba(255,255,255,0.1);color:#fff;font-size:16px;font-family:'IBM Plex Sans',sans-serif;outline:none;transition:border-color 0.2s;}
+input[type="text"]:focus{border-color:rgba(100,181,246,0.8);}
+input[type="text"]::placeholder{color:rgba(255,255,255,0.5);}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:0.5rem;padding:16px 32px;border:none;border-radius:14px;font-family:'Unbounded',sans-serif;font-size:1rem;font-weight:600;cursor:pointer;transition:transform 0.15s,box-shadow 0.15s;text-decoration:none;color:#fff;}
+.btn-primary{background:linear-gradient(135deg,#42a5f5,#1565c0);box-shadow:0 4px 20px rgba(33,150,243,0.4);}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 6px 28px rgba(33,150,243,0.5);}
+.btn-primary:active{transform:translateY(0);}
+.btn-secondary{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);}
+.btn:disabled{opacity:0.5;cursor:not-allowed;transform:none!important;}
+@media(pointer:coarse),(max-width:700px){.btn{padding:18px 28px;font-size:1.05rem;}}
+.quiz-header{display:flex;align-items:center;justify-content:space-between;width:100%;margin-bottom:1rem;gap:1rem;}
+.quiz-header-left{display:flex;align-items:center;gap:0.7rem;font-family:'JetBrains Mono',monospace;font-size:0.95rem;}
+.quiz-header-right{display:flex;align-items:center;gap:0.7rem;}
+.violation-counter{background:rgba(244,67,54,0.8);padding:4px 10px;border-radius:10px;font-size:0.8rem;font-family:'JetBrains Mono',monospace;}
+.progress-bar{width:100%;height:6px;background:rgba(255,255,255,0.15);border-radius:3px;overflow:hidden;margin-bottom:1.5rem;}
+.progress-fill{height:100%;background:linear-gradient(90deg,#42a5f5,#66bb6a);border-radius:3px;transition:width 0.3s ease;}
+.question-card{width:100%;}
+.question-text{font-size:1.15rem;line-height:1.5;margin-bottom:1.5rem;font-weight:500;}
+.options{display:flex;flex-direction:column;gap:0.7rem;}
+.option{display:flex;align-items:center;gap:1rem;padding:16px 20px;background:rgba(255,255,255,0.08);border:2px solid rgba(255,255,255,0.15);border-radius:14px;cursor:pointer;transition:all 0.15s;font-size:1rem;}
+.option:hover{background:rgba(255,255,255,0.15);border-color:rgba(100,181,246,0.5);}
+.option.selected{background:rgba(100,181,246,0.25);border-color:rgba(100,181,246,0.8);}
+.option-letter{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-weight:600;font-family:'JetBrains Mono',monospace;flex-shrink:0;}
+@media(pointer:coarse),(max-width:700px){.option{padding:18px 16px;}}
+.timer-ring{position:relative;width:56px;height:56px;flex-shrink:0;}
+.timer-ring svg{transform:rotate(-90deg);}
+.timer-ring circle{fill:none;stroke-width:4;}
+.timer-bg{stroke:rgba(255,255,255,0.15);}
+.timer-fg{stroke:#66bb6a;stroke-linecap:round;transition:stroke 0.3s;}
+.timer-fg.warning{stroke:#f44336;animation:pulse-ring 0.6s ease-in-out infinite;}
+.timer-text{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:1rem;font-weight:700;}
+@keyframes pulse-ring{0%,100%{opacity:1;}50%{opacity:0.5;}}
+.toast-container{position:fixed;top:1rem;right:1rem;z-index:9999;display:flex;flex-direction:column;gap:0.5rem;pointer-events:none;}
+.toast{background:rgba(244,67,54,0.9);color:#fff;padding:10px 18px;border-radius:10px;font-size:0.85rem;font-weight:500;animation:toast-in 0.3s ease;backdrop-filter:blur(8px);}
+@keyframes toast-in{from{opacity:0;transform:translateX(20px);}to{opacity:1;transform:translateX(0);}}
+.result-score{position:relative;width:140px;height:140px;margin:0 auto 1rem;}
+.result-score svg{transform:rotate(-90deg);}
+.result-score circle{fill:none;stroke-width:8;}
+.score-bg{stroke:rgba(255,255,255,0.1);}
+.score-fg{stroke:#66bb6a;stroke-linecap:round;transition:stroke-dashoffset 1.5s ease;}
+.score-text{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.score-number{font-family:'JetBrains Mono',monospace;font-size:2.5rem;font-weight:700;}
+.score-label{font-size:0.85rem;opacity:0.7;}
+.result-stats{display:flex;justify-content:center;gap:1.5rem;margin:1rem 0;flex-wrap:wrap;}
+.stat{text-align:center;}
+.stat-value{font-family:'JetBrains Mono',monospace;font-size:1.4rem;font-weight:700;}
+.stat-label{font-size:0.8rem;opacity:0.7;margin-top:2px;}
+.dots{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:1rem 0;}
+.dot{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:600;}
+.dot.correct{background:rgba(76,175,80,0.8);}
+.dot.wrong{background:rgba(244,67,54,0.8);}
+.dot.skip{background:rgba(255,152,0,0.7);}
+.blocked-screen{text-align:center;}
+.blocked-icon{font-size:3rem;margin-bottom:1rem;}
+.overlay-fullscreen{display:none;position:fixed;inset:0;background:rgba(10,22,40,0.95);z-index:9000;align-items:center;justify-content:center;flex-direction:column;gap:1rem;padding:2rem;}
+.overlay-fullscreen.active{display:flex;}
+.send-status{margin-top:0.5rem;font-size:0.85rem;opacity:0.8;text-align:center;}
+footer{text-align:center;padding:1rem;opacity:0.6;font-size:0.8rem;margin-top:auto;position:relative;z-index:1;}
+.header-bar{text-align:center;padding:0.8rem;font-family:'Unbounded',sans-serif;font-size:0.9rem;opacity:0.8;position:relative;z-index:1;}
+</style>
+</head>
+<body>
+<canvas id="particles"></canvas>
+
+<div class="header-bar">Фізика • <span id="classDisplay"></span> клас — Інтерференція і дифракція світла</div>
+
+<!-- START SCREEN -->
+<div class="screen active" id="screenStart">
+<div class="screen-content glass">
+<h1>🌈 Інтерференція і дифракція світла</h1>
+<p class="subtitle">Тест з фізики для <span id="classDisplay2"></span> класу</p>
+<div class="chips">
+<span class="chip" id="totalChip"></span>
+<span class="chip" id="timeChip"></span>
+<span class="chip">11-бальна система</span>
+<span class="chip topic">4 підтеми</span>
+</div>
+<div style="display:flex;flex-direction:column;gap:0.8rem;margin-top:1rem;">
+<input type="text" id="inputName" placeholder="Прізвище та ім'я (напр: Шевченко Тарас)" autocomplete="off">
+<input type="text" id="inputGroup" placeholder="Група / клас (напр: 11-А)" autocomplete="off">
+</div>
+<p style="font-size:0.85rem;opacity:0.7;margin-top:0.8rem;">⚡ Тест проходить у повноекранному режимі. Обмеження за часом. Результат надсилається вчителю.</p>
+<button class="btn btn-primary" id="btnStart" style="width:100%;margin-top:1rem;">Розпочати тест</button>
+</div>
+</div>
+
+<!-- QUIZ SCREEN -->
+<div class="screen" id="screenQuiz">
+<div class="screen-content" style="max-width:700px;width:100%;padding:1rem;">
+<div class="quiz-header">
+<div class="quiz-header-left">
+<div class="timer-ring" id="timerRing">
+<svg width="56" height="56" viewBox="0 0 56 56">
+<circle class="timer-bg" cx="28" cy="28" r="24"></circle>
+<circle class="timer-fg" id="timerFg" cx="28" cy="28" r="24" stroke-dasharray="150.8" stroke-dashoffset="0"></circle>
+</svg>
+<div class="timer-text" id="timerText">12</div>
+</div>
+<span id="questionCounter">01 / 20</span>
+</div>
+<div class="quiz-header-right">
+<div class="violation-counter" id="violationCounter">⚠ 0/3</div>
+</div>
+</div>
+<div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+<div class="question-card glass" style="padding:1.5rem;">
+<div id="questionSubtopic" style="margin-bottom:0.7rem;"></div>
+<div class="question-text" id="questionText"></div>
+<div class="options" id="optionsContainer"></div>
+</div>
+</div>
+</div>
+
+<!-- RESULTS SCREEN -->
+<div class="screen" id="screenResults">
+<div class="screen-content glass" style="text-align:center;">
+<h2>📊 Результати</h2>
+<div class="result-score">
+<svg width="140" height="140" viewBox="0 0 140 140">
+<circle class="score-bg" cx="70" cy="70" r="60"></circle>
+<circle class="score-fg" id="scoreFg" cx="70" cy="70" r="60" stroke-dasharray="377" stroke-dashoffset="377"></circle>
+</svg>
+<div class="score-text">
+<div class="score-number" id="scoreNumber">0</div>
+<div class="score-label">з 11</div>
+</div>
+</div>
+<div class="result-stats">
+<div class="stat"><div class="stat-value" id="statCorrect">0</div><div class="stat-label">правильних</div></div>
+<div class="stat"><div class="stat-value" id="statWrong">0</div><div class="stat-label">помилок</div></div>
+<div class="stat"><div class="stat-value" id="statSkip">0</div><div class="stat-label">пропусків</div></div>
+<div class="stat"><div class="stat-value" id="statViolations">0</div><div class="stat-label">порушень</div></div>
+</div>
+<div class="dots" id="resultDots"></div>
+<div class="send-status" id="sendStatus">Надсилання результатів...</div>
+<button class="btn btn-secondary" id="btnRetry" style="display:none;margin-top:1rem;">Надіслати ще раз</button>
+<button class="btn btn-primary" id="btnRestart" style="margin-top:0.8rem;">Новий тест</button>
+</div>
+</div>
+
+<!-- BLOCKED SCREEN -->
+<div class="screen" id="screenBlocked">
+<div class="screen-content glass blocked-screen">
+<div class="blocked-icon">🔒</div>
+<h2>Спроба вже використана</h2>
+<p style="margin:1rem 0;opacity:0.8;" id="blockedInfo">Ви вже проходили цей тест.</p>
+<button class="btn btn-primary" id="btnBlockedOk">Зрозуміло</button>
+</div>
+</div>
+
+<!-- FULLSCREEN OVERLAY -->
+<div class="overlay-fullscreen" id="overlayFs">
+<h2>⚠️ Тест у повноекранному режимі</h2>
+<p>Поверніться до тесту для продовження</p>
+<button class="btn btn-primary" id="btnReenterFs">Повернутися до тесту</button>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<footer>Фізика • <span id="classDisplay3"></span> клас | Інтерференція і дифракція світла | <span id="totalDisplay2"></span> питань</footer>
+
+<script>
+(function(){
+"use strict";
+
+// ===== CONSTANTS (DOM filling immediately) =====
+var CLASS = 11;
+var TOTAL = 20;
+var QUESTION_TIME = 12;
+var APPS_SCRIPT_URL = ""; // ВСТАВТЕ URL веб-застосунку Google Apps Script тут
+var SECRET = "fiz11-2026-secret";
+var TG_BOT = "8977852457:AAH1jJz54Wb5WFxNn1CrpBlRKbML7Pf_2zs";
+var TG_CHAT = "622617127";
+
+function safeBtoa(str){
+  try{
+    return btoa(unescape(encodeURIComponent(str)));
+  }catch(e){
+    var h=0;
+    for(var i=0;i<str.length;i++){h=((h<<5)-h)+str.charCodeAt(i);h|=0;}
+    return "h"+Math.abs(h);
+  }
+}
+
+var TEST_ID = safeBtoa("Інтерференція і дифракція світла" + CLASS);
+
+// IMMEDIATE DOM FILL
+document.getElementById("classDisplay").textContent = CLASS;
+document.getElementById("classDisplay2").textContent = CLASS;
+document.getElementById("classDisplay3").textContent = CLASS;
+document.getElementById("totalChip").textContent = TOTAL + " питань";
+document.getElementById("timeChip").textContent = QUESTION_TIME + " с на питання";
+document.getElementById("totalDisplay2").textContent = TOTAL;
+
+// ===== QUESTIONS ARRAY =====
+var questions = [
+  // Рівень 1 - Базові поняття (5)
+  {q:"Що таке дифракція світла?",opts:["Поглинання світла речовиною","Огинання світлом перешкод","Заломлення світла на межі середовищ","Відбивання світла від поверхні"],correct:1,sub:"Базові поняття",level:1},
+  {q:"Яка головна умова спостереження інтерференції світла?",opts:["Хвилі мають бути різної частоти","Хвилі мають бути когерентними","Хвилі мають поширюватися у вакуумі","Хвилі мають бути поздовжніми"],correct:1,sub:"Базові поняття",level:1},
+  {q:"Когерентні хвилі — це хвилі з:",opts:["однаковою амплітудою","однаковою швидкістю","однаковою частотою та сталою різницею фаз","різною довжиною хвилі"],correct:2,sub:"Базові поняття",level:1},
+  {q:"Дифракційна гратка — це:",opts:["лінза з великою фокусною відстанню","призма для розкладання світла","дзеркало з нерівною поверхнею","пластина з системою паралельних щілин"],correct:3,sub:"Дифракційна гратка",level:1},
+  {q:"Веселкові кольори на мильній бульбашці — це результат:",opts:["дисперсії","дифракції на краях","інтерференції в тонких плівках","поляризації"],correct:2,sub:"Застосування",level:1},
+
+  // Рівень 2 - Середній (5)
+  {q:"Гратка має 100 штрихів на 1 мм. Який її період d?",opts:["1 мкм","10 мкм","100 мкм","1000 мкм"],correct:1,sub:"Дифракційна гратка",level:2},
+  {q:"Формула дифракційної гратки має вигля:",opts:["d·sinθ = kλ","d·cosθ = kλ","d·sinθ = k/λ","d/sinθ = k·λ"],correct:0,sub:"Дифракційна гратка",level:2},
+  {q:"Період гратки d=2000 нм, λ=1000 нм. Який максимальний порядок k (при sinθ=1)?",opts:["1","2","4","10"],correct:1,sub:"Дифракційна гратка",level:2},
+  {q:"Для умови максимуму інтерференції різниця ходу дорівнює:",opts:["(2k+1)·λ/2","k·λ","k·λ/2","(2k+1)·λ"],correct:1,sub:"Умови max/min",level:2},
+  {q:"Період гратки d=4000 нм, λ=1000 нм. k_max = ?",opts:["2","4","8","10"],correct:1,sub:"Дифракційна гратка",level:2},
+
+  // Рівень 3 - Достатній (5)
+  {q:"Гратка має 500 штр/мм. Знайти період d.",opts:["1 мкм","2 мкм","5 мкм","20 мкм"],correct:1,sub:"Дифракційна гратка",level:3},
+  {q:"d=1000 нм, λ=200 нм. Знайти k_max.",opts:["2","5","10","50"],correct:1,sub:"Дифракційна гратка",level:3},
+  {q:"Різниця ходу Δd=2000 нм, λ=500 нм. Який це порядок максимуму k?",opts:["2","4","5","10"],correct:1,sub:"Умови max/min",level:3},
+  {q:"d·sinθ = kλ. Якщо k=4, λ=500 нм. Чому дорівнює kλ?",opts:["1000 нм","2000 нм","4000 нм","500 нм"],correct:1,sub:"Умови max/min",level:3},
+  {q:"Для мінімуму Δd=(2k+1)·λ/2. При k=1, λ=400 нм знайти Δd.",opts:["200 нм","400 нм","600 нм","800 нм"],correct:2,sub:"Умови max/min",level:3},
+
+  // Рівень 4 - Високий (5)
+  {q:"Гратка має 200 штр/мм. Знайти її період d.",opts:["2 мкм","5 мкм","10 мкм","20 мкм"],correct:1,sub:"Дифракційна гратка",level:4},
+  {q:"Кільця Ньютона — це приклад:",opts:["дифракції на одній щілині","інтерференції в тонкому повітряному прошарку","дисперсії світла","поляризації"],correct:1,sub:"Застосування",level:4},
+  {q:"d·sinθ = kλ. При k=2, λ=200 нм. Знайти kλ.",opts:["200 нм","400 нм","500 нм","1000 нм"],correct:1,sub:"Умови max/min",level:4},
+  {q:"Яке явище дозволяє дифракційній гратці розкладати біле світло у спектр?",opts:["Залежність кута відхилення від довжини хвилі","Однакове поглинання всіх хвиль","Відбивання під однаковим кутом","Поляризація всіх хвиль"],correct:0,sub:"Застосування",level:4},
+  {q:"Гратка d=2000 нм, λ=500 нм. Знайти d·sinθ для k=4.",opts:["500 нм","1000 нм","2000 нм","4000 нм"],correct:2,sub:"Умови max/min",level:4}
+];
+// Питань: 5+5+5+5 = 20 ✓
+
+// ===== STATE =====
+var state = {
+  phase: "start",
+  name: "",
+  group: "",
+  studentId: "",
+  currentQ: 0,
+  answers: [],
+  violations: 0,
+  timerInterval: null,
+  timeLeft: QUESTION_TIME,
+  shuffled: [],
+  autoEnded: false
+};
+
+var lastViolationTime = 0;
+
+// ===== HELPERS =====
+function shuffle(arr){
+  var a = arr.slice();
+  for(var i=a.length-1;i>0;i--){
+    var j=Math.floor(Math.random()*(i+1));
+    var t=a[i];a[i]=a[j];a[j]=t;
+  }
+  return a;
+}
+
+function normalizeName(name){
+  return name.toLowerCase().replace(/['ʼ`]/g,"").replace(/[^а-яіїєґa-z\s]/gi,"").trim().split(/\s+/).sort().join(" ");
+}
+
+function generateStudentId(name){
+  return TEST_ID + "_" + safeBtoa(normalizeName(name));
+}
+
+function showToast(msg){
+  var c = document.getElementById("toastContainer");
+  var t = document.createElement("div");
+  t.className="toast";
+  t.textContent="⚠ "+msg;
+  c.appendChild(t);
+  setTimeout(function(){t.remove();},2500);
+}
+
+function registerViolation(msg){
+  if(state.phase!=="quiz") return;
+  var now=Date.now();
+  if(now-lastViolationTime<1500) return;
+  lastViolationTime=now;
+  state.violations++;
+  document.getElementById("violationCounter").textContent="⚠ "+state.violations+"/3";
+  showToast(msg||"Порушення");
+  if(state.violations>=3){
+    state.autoEnded=true;
+    finishTest(true);
+  }
+}
+
+function showScreen(id){
+  var screens=document.querySelectorAll(".screen");
+  for(var i=0;i<screens.length;i++) screens[i].classList.remove("active");
+  document.getElementById(id).classList.add("active");
+}
+
+// ===== LOCAL STORAGE LAYERS =====
+function saveAttemptLocal(status,grade){
+  try{
+    var key="attempt_"+TEST_ID;
+    var arr=JSON.parse(localStorage.getItem(key+"_arr")||"[]");
+    var entry={sid:state.studentId,name:state.name,group:state.group,date:new Date().toISOString(),status:status,grade:grade||0};
+    var found=false;
+    for(var i=0;i<arr.length;i++){
+      if(arr[i].sid===state.studentId){arr[i]=entry;found=true;break;}
+    }
+    if(!found) arr.push(entry);
+    localStorage.setItem(key+"_arr",JSON.stringify(arr));
+    localStorage.setItem(key+"_"+state.studentId,JSON.stringify(entry));
+    sessionStorage.setItem(key+"_"+state.studentId,JSON.stringify(entry));
+    try{
+      var d=new Date();d.setFullYear(d.getFullYear()+10);
+      document.cookie=key+"_"+state.studentId+"="+encodeURIComponent(JSON.stringify(entry))+";expires="+d.toUTCString()+";path=/";
+    }catch(e){}
+  }catch(e){}
+}
+
+function checkAttemptLocal(){
+  try{
+    var key="attempt_"+TEST_ID;
+    var sid=state.studentId;
+    if(!sid) return null;
+    // Layer 1: array
+    var arr=JSON.parse(localStorage.getItem(key+"_arr")||"[]");
+    for(var i=0;i<arr.length;i++){
+      if(arr[i].sid===sid) return arr[i];
+    }
+    // Layer 2: individual key
+    var indiv=localStorage.getItem(key+"_"+sid);
+    if(indiv) return JSON.parse(indiv);
+    // Layer 3: session
+    var sess=sessionStorage.getItem(key+"_"+sid);
+    if(sess) return JSON.parse(sess);
+    // Layer 4: cookie
+    var cookies=document.cookie.split(";");
+    for(var j=0;j<cookies.length;j++){
+      var c=cookies[j].trim();
+      if(c.indexOf(key+"_"+sid+"=")===0){
+        return JSON.parse(decodeURIComponent(c.substring(c.indexOf("=")+1)));
+      }
+    }
+  }catch(e){}
+  return null;
+}
+
+// ===== CLOUD CHECK =====
+function cloudCheck(callback){
+  if(!APPS_SCRIPT_URL){callback(null);return;}
+  var url=APPS_SCRIPT_URL+"?action=check&secret="+encodeURIComponent(SECRET)+"&testId="+encodeURIComponent(TEST_ID)+"&studentId="+encodeURIComponent(state.studentId);
+  var xhr=new XMLHttpRequest();
+  xhr.open("GET",url,true);
+  xhr.timeout=4000;
+  xhr.onload=function(){
+    try{
+      var r=JSON.parse(xhr.responseText);
+      if(r.ok) callback(r); else callback(null);
+    }catch(e){callback(null);}
+  };
+  xhr.onerror=function(){callback(null);};
+  xhr.ontimeout=function(){callback(null);};
+  xhr.send();
+}
+
+function cloudUpsert(status,grade){
+  if(!APPS_SCRIPT_URL) return;
+  var params="action=upsert&secret="+encodeURIComponent(SECRET)+"&testId="+encodeURIComponent(TEST_ID)+
+    "&studentId="+encodeURIComponent(state.studentId)+"&name="+encodeURIComponent(state.name)+
+    "&group="+encodeURIComponent(state.group)+"&class="+encodeURIComponent(CLASS)+
+    "&topic="+encodeURIComponent("Інтерференція і дифракція світла")+
+    "&date="+encodeURIComponent(new Date().toLocaleString("uk-UA"))+
+    "&status="+encodeURIComponent(status)+"&grade="+encodeURIComponent(grade||0)+
+    "&violations="+encodeURIComponent(state.violations);
+  var url=APPS_SCRIPT_URL+"?"+params;
+  var xhr=new XMLHttpRequest();
+  xhr.open("GET",url,true);
+  xhr.timeout=5000;
+  xhr.send();
+  // Auto retry once
+  setTimeout(function(){
+    var xhr2=new XMLHttpRequest();
+    xhr2.open("GET",url,true);
+    xhr2.timeout=5000;
+    xhr2.send();
+  },3000);
+}
+
+// ===== START TEST =====
+function startTest(){
+  state.name=document.getElementById("inputName").value.trim();
+  state.group=document.getElementById("inputGroup").value.trim();
+  if(state.name.split(/\s+/).length<2){alert("Введіть прізвище та ім'я (мінімум 2 слова)");return;}
+  if(!state.group){alert("Введіть групу / клас");return;}
+  state.studentId=generateStudentId(state.name);
+  
+  // Check cloud first
+  var btnStart=document.getElementById("btnStart");
+  btnStart.disabled=true;
+  btnStart.textContent="Перевірка...";
+  
+  cloudCheck(function(result){
+    if(result && result.exists && result.record){
+      var rec=result.record;
+      showBlocked(rec.date,rec.status,rec.grade);
+      btnStart.disabled=false;
+      btnStart.textContent="Розпочати тест";
+      return;
+    }
+    // Cloud says no attempt or unavailable - check local
+    if(!result){
+      // Cloud unavailable, fallback to local
+      var local=checkAttemptLocal();
+      if(local){
+        showBlocked(local.date,local.status,local.grade);
+        btnStart.disabled=false;
+        btnStart.textContent="Розпочати тест";
+        return;
+      }
+    }
+    // All clear, start
+    saveAttemptLocal("progress",0);
+    cloudUpsert("progress",0);
+    btnStart.disabled=false;
+    btnStart.textContent="Розпочати тест";
+    
+    // Request fullscreen
+    var el=document.documentElement;
+    if(el.requestFullscreen) el.requestFullscreen();
+    else if(el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+    
+    setTimeout(function(){beginQuiz();},300);
+  });
+}
+
+function showBlocked(date,status,grade){
+  var info="Дата: "+date;
+  if(status==="done") info+=" | Оцінка: "+grade+"/11";
+  else info+=" | Тест не завершено";
+  document.getElementById("blockedInfo").textContent=info;
+  showScreen("screenBlocked");
+}
+
+function beginQuiz(){
+  state.phase="quiz";
+  state.currentQ=0;
+  state.answers=[];
+  state.violations=0;
+  state.autoEnded=false;
+  state.shuffled=shuffle(questions);
+  for(var i=0;i<state.shuffled.length;i++){
+    state.shuffled[i].shuffledOpts=shuffle([0,1,2,3]);
+  }
+  showScreen("screenQuiz");
+  renderQuestion();
+}
+
+// ===== RENDER QUESTION =====
+function renderQuestion(){
+  if(state.currentQ>=TOTAL){finishTest(false);return;}
+  var q=state.shuffled[state.currentQ];
+  var letters=["А","Б","В","Г"];
+  
+  document.getElementById("questionCounter").textContent=String(state.currentQ+1).padStart(2,"0")+" / "+TOTAL;
+  document.getElementById("progressFill").style.width=((state.currentQ)/TOTAL*100)+"%";
+  
+  var subEl=document.getElementById("questionSubtopic");
+  var subClass="chip sub-";
+  if(q.sub==="Базові поняття") subClass+="basic";
+  else if(q.sub==="Дифракційна гратка") subClass+="grating";
+  else if(q.sub==="Умови max/min") subClass+="cond";
+  else subClass+="app";
+  subEl.innerHTML='<span class="chip '+subClass+'">'+q.sub+'</span> <span class="chip" style="background:rgba(255,255,255,0.2);">Рівень '+q.level+'</span>';
+  
+  document.getElementById("questionText").textContent=q.q;
+  
+  var optsEl=document.getElementById("optionsContainer");
+  optsEl.innerHTML="";
+  for(var i=0;i<q.shuffledOpts.length;i++){
+    var origIdx=q.shuffledOpts[i];
+    var opt=document.createElement("div");
+    opt.className="option";
+    opt.innerHTML='<span class="option-letter">'+letters[i]+'</span><span>'+q.opts[origIdx]+'</span>';
+    opt.setAttribute("data-orig",origIdx);
+    opt.setAttribute("data-idx",i);
+    opt.addEventListener("click",selectOption);
+    optsEl.appendChild(opt);
+  }
+  
+  startTimer();
+}
+
+function selectOption(e){
+  if(state.phase!=="quiz") return;
+  var optEl=e.currentTarget;
+  var origIdx=parseInt(optEl.getAttribute("data-orig"));
+  var q=state.shuffled[state.currentQ];
+  var isCorrect=(origIdx===q.correct);
+  
+  optEl.classList.add("selected");
+  state.answers.push({qIndex:state.currentQ,selected:origIdx,correct:q.correct,isCorrect:isCorrect,skipped:false});
+  
+  clearInterval(state.timerInterval);
+  setTimeout(function(){
+    state.currentQ++;
+    renderQuestion();
+  },400);
+}
+
+// ===== TIMER =====
+function startTimer(){
+  state.timeLeft=QUESTION_TIME;
+  var circumference=2*Math.PI*24;
+  var fg=document.getElementById("timerFg");
+  var txt=document.getElementById("timerText");
+  
+  clearInterval(state.timerInterval);
+  updateTimerDisplay(circumference);
+  
+  state.timerInterval=setInterval(function(){
+    state.timeLeft-=0.1;
+    if(state.timeLeft<=0){
+      state.timeLeft=0;
+      clearInterval(state.timerInterval);
+      state.answers.push({qIndex:state.currentQ,selected:-1,correct:state.shuffled[state.currentQ].correct,isCorrect:false,skipped:true});
+      state.currentQ++;
+      renderQuestion();
+      return;
+    }
+    updateTimerDisplay(circumference);
+  },100);
+}
+
+function updateTimerDisplay(circ){
+  var fg=document.getElementById("timerFg");
+  var txt=document.getElementById("timerText");
+  var pct=state.timeLeft/QUESTION_TIME;
+  fg.setAttribute("stroke-dashoffset",circ*(1-pct));
+  txt.textContent=Math.ceil(state.timeLeft);
+  
+  var warnThreshold=Math.min(5,QUESTION_TIME/3);
+  if(state.timeLeft<=warnThreshold){
+    fg.classList.add("warning");
+  }else{
+    fg.classList.remove("warning");
+  }
+}
+
+// ===== FINISH TEST =====
+function finishTest(forced){
+  if(state.phase==="results") return;
+  state.phase="results";
+  clearInterval(state.timerInterval);
+  
+  var correct=0,wrong=0,skipped=0;
+  for(var i=0;i<state.answers.length;i++){
+    if(state.answers[i].skipped) skipped++;
+    else if(state.answers[i].isCorrect) correct++;
+    else wrong++;
+  }
+  
+  var grade=0;
+  if(!forced) grade=Math.round(correct/TOTAL*11);
+  
+  // Update results screen
+  var scoreFg=document.getElementById("scoreFg");
+  var circ=2*Math.PI*60;
+  var offset=circ*(1-grade/11);
+  setTimeout(function(){scoreFg.style.strokeDashoffset=offset;},100);
+  document.getElementById("scoreNumber").textContent=grade;
+  document.getElementById("statCorrect").textContent=correct;
+  document.getElementById("statWrong").textContent=wrong;
+  document.getElementById("statSkip").textContent=skipped;
+  document.getElementById("statViolations").textContent=state.violations;
+  
+  // Dots
+  var dotsEl=document.getElementById("resultDots");
+  dotsEl.innerHTML="";
+  for(var j=0;j<TOTAL;j++){
+    var dot=document.createElement("div");
+    dot.className="dot";
+    if(j<state.answers.length){
+      if(state.answers[j].skipped){dot.classList.add("skip");dot.textContent="⏱";}
+      else if(state.answers[j].isCorrect){dot.classList.add("correct");dot.textContent="✓";}
+      else{dot.classList.add("wrong");dot.textContent="✗";}
+    }else{dot.classList.add("skip");dot.textContent="—";}
+    dotsEl.appendChild(dot);
+  }
+  
+  showScreen("screenResults");
+  saveAttemptLocal("done",grade);
+  cloudUpsert("done",grade);
+  sendTelegram(correct,wrong,skipped,grade,forced);
+}
+
+// ===== TELEGRAM =====
+function sendTelegram(correct,wrong,skipped,grade,forced){
+  var statusEl=document.getElementById("sendStatus");
+  var retryBtn=document.getElementById("btnRetry");
+  statusEl.textContent="Надсилання результатів...";
+  retryBtn.style.display="none";
+  
+  var details="";
+  for(var i=0;i<state.answers.length;i++){
+    if(state.answers[i].skipped) details+=(i+1)+"⏱ ";
+    else if(state.answers[i].isCorrect) details+=(i+1)+"✔ ";
+    else details+=(i+1)+"✖ ";
+  }
+  
+  var pct=Math.round(correct/TOTAL*100);
+  var msg="📋 Результати тесту\n"+
+    "👤 "+state.name+"\n"+
+    "🏫 "+state.group+" | "+CLASS+" клас\n"+
+    "📅 "+new Date().toLocaleString("uk-UA")+"\n"+
+    "📖 Інтерференція і дифракція світла\n"+
+    "✅ "+correct+"/"+TOTAL+" ("+pct+"%)\n"+
+    "🏆 Оцінка: "+grade+"/11\n"+
+    "⚠ Порушень: "+state.violations+(forced?" (автозавершення)":"")+"\n"+
+    "📝 "+details;
+  
+  var url="https://api.telegram.org/bot"+TG_BOT+"/sendMessage";
+  var payload={chat_id:TG_CHAT,text:msg,parse_mode:""};
+  
+  try{
+    var xhr=new XMLHttpRequest();
+    xhr.open("POST",url,true);
+    xhr.setRequestHeader("Content-Type","application/json");
+    xhr.timeout=8000;
+    xhr.onload=function(){
+      if(xhr.status===200){
+        statusEl.textContent="✓ Результати надіслано";
+      }else{
+        statusEl.textContent="✗ Помилка надсилання";
+        retryBtn.style.display="inline-flex";
+        retryBtn.onclick=function(){sendTelegram(correct,wrong,skipped,grade,forced);};
+      }
+    };
+    xhr.onerror=function(){
+      // fallback sendBeacon
+      try{navigator.sendBeacon(url,JSON.stringify(payload));statusEl.textContent="✓ Відправлено (офлайн)";}
+      catch(e){statusEl.textContent="✗ Помилка надсилання";retryBtn.style.display="inline-flex";retryBtn.onclick=function(){sendTelegram(correct,wrong,skipped,grade,forced);};}
+    };
+    xhr.ontimeout=function(){statusEl.textContent="✗ Таймаут";retryBtn.style.display="inline-flex";retryBtn.onclick=function(){sendTelegram(correct,wrong,skipped,grade,forced);};};
+    xhr.send(JSON.stringify(payload));
+  }catch(e){
+    statusEl.textContent="✗ Помилка надсилання";
+    retryBtn.style.display="inline-flex";
+    retryBtn.onclick=function(){sendTelegram(correct,wrong,skipped,grade,forced);};
+  }
+}
+
+// ===== ANTI-CHEAT =====
+(function(){
+  try{
+    document.addEventListener("visibilitychange",function(){
+      if(state.phase==="quiz"&&document.hidden) registerViolation("Вкладка");
+    });
+    window.addEventListener("blur",function(){
+      if(state.phase==="quiz") registerViolation("Фокус");
+    });
+    document.addEventListener("fullscreenchange",function(){
+      if(state.phase==="quiz"&&!document.fullscreenElement){
+        document.getElementById("overlayFs").classList.add("active");
+        registerViolation("Повноекранний");
+      }else{
+        document.getElementById("overlayFs").classList.remove("active");
+      }
+    });
+    document.addEventListener("webkitfullscreenchange",function(){
+      if(state.phase==="quiz"&&!document.webkitFullscreenElement){
+        document.getElementById("overlayFs").classList.add("active");
+        registerViolation("Повноекранний");
+      }else{
+        document.getElementById("overlayFs").classList.remove("active");
+      }
+    });
+    document.addEventListener("keydown",function(e){
+      if(state.phase!=="quiz") return;
+      if(e.key==="F12") registerViolation("F12");
+      if(e.ctrlKey&&e.shiftKey&&(e.key==="I"||e.key==="i"||e.key==="J"||e.key==="j"||e.key==="C"||e.key==="c")) registerViolation("DevTools");
+      if(e.ctrlKey&&(e.key==="c"||e.key==="v"||e.key==="x"||e.key==="u"||e.key==="s"||e.key==="p"||e.key==="a")) registerViolation("Комбінація");
+      if(e.key==="PrintScreen") registerViolation("Скріншот");
+    });
+    document.addEventListener("contextmenu",function(e){
+      if(state.phase==="quiz"){e.preventDefault();registerViolation("Контекст");}
+    });
+    document.addEventListener("copy",function(e){if(state.phase==="quiz"){e.preventDefault();registerViolation("Копіювання");}});
+    document.addEventListener("cut",function(e){if(state.phase==="quiz"){e.preventDefault();registerViolation("Вирізання");}});
+    document.addEventListener("paste",function(e){if(state.phase==="quiz"){e.preventDefault();registerViolation("Вставка");}});
+    document.addEventListener("dragstart",function(e){if(state.phase==="quiz"){e.preventDefault();}});
+    window.addEventListener("beforeunload",function(e){
+      if(state.phase==="quiz"){e.preventDefault();e.returnValue="";}
+    });
+  }catch(e){}
+})();
+
+// ===== EVENT LISTENERS =====
+document.getElementById("btnStart").addEventListener("click",startTest);
+document.getElementById("btnReenterFs").addEventListener("click",function(){
+  var el=document.documentElement;
+  if(el.requestFullscreen) el.requestFullscreen();
+  else if(el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+});
+document.getElementById("btnBlockedOk").addEventListener("click",function(){location.reload();});
+document.getElementById("btnRestart").addEventListener("click",function(){
+  state.phase="start";
+  state.answers=[];
+  state.violations=0;
+  state.currentQ=0;
+  document.getElementById("inputName").value="";
+  document.getElementById("inputGroup").value="";
+  showScreen("screenStart");
+  if(document.exitFullscreen) document.exitFullscreen();
+});
+
+// ===== LIVE NAME CHECK =====
+document.getElementById("inputName").addEventListener("blur",function(){
+  var name=this.value.trim();
+  if(name.split(/\s+/).length>=2){
+    state.studentId=generateStudentId(name);
+    var local=checkAttemptLocal();
+    if(local){showBlocked(local.date,local.status,local.grade);}
+  }
+});
+
+// ===== CANVAS PARTICLES =====
+(function(){
+  try{
+    var canvas=document.getElementById("particles");
+    var ctx=canvas.getContext("2d");
+    var isMobile=window.matchMedia("(pointer:coarse)").matches||window.innerWidth<700;
+    var particles=[];
+    var count=isMobile?20:50;
+    
+    function resize(){canvas.width=window.innerWidth;canvas.height=window.innerHeight;}
+    resize();
+    window.addEventListener("resize",resize);
+    
+    for(var i=0;i<count;i++){
+      particles.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,r:Math.random()*2+1,vx:(Math.random()-0.5)*0.5,vy:(Math.random()-0.5)*0.5});
+    }
+    
+    if(isMobile){
+      // Single static frame
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      for(var j=0;j<particles.length;j++){
+        ctx.beginPath();
+        ctx.arc(particles[j].x,particles[j].y,particles[j].r,0,Math.PI*2);
+        ctx.fillStyle="rgba(100,181,246,0.3)";
+        ctx.fill();
+      }
+    }else{
+      function animate(){
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        for(var k=0;k<particles.length;k++){
+          var p=particles[k];
+          p.x+=p.vx;p.y+=p.vy;
+          if(p.x<0||p.x>canvas.width) p.vx*=-1;
+          if(p.y<0||p.y>canvas.height) p.vy*=-1;
+          ctx.beginPath();
+          ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+          ctx.fillStyle="rgba(100,181,246,0.4)";
+          ctx.fill();
+        }
+        requestAnimationFrame(animate);
+      }
+      animate();
+    }
+  }catch(e){}
+})();
+
+// ===== UNLOCK CHECK =====
+(function(){
+  try{
+    var params=new URLSearchParams(window.location.search);
+    var unlock=params.get("unlock");
+    if(unlock){
+      var key="attempt_"+TEST_ID;
+      if(unlock==="all"){
+        localStorage.removeItem(key+"_arr");
+        var cookies=document.cookie.split(";");
+        for(var i=0;i<cookies.length;i++){
+          var c=cookies[i].trim();
+          if(c.indexOf(key+"_")===0){
+            var name=c.substring(0,c.indexOf("="));
+            document.cookie=name+"=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
+          }
+        }
+        alert("✅ Локальні спроби видалено для всіх учнів (локально)");
+      }else{
+        var norm=normalizeName(unlock);
+        var sid=TEST_ID+"_"+safeBtoa(norm);
+        localStorage.removeItem(key+"_"+sid);
+        sessionStorage.removeItem(key+"_"+sid);
+        var cookies2=document.cookie.split(";");
+        for(var j=0;j<cookies2.length;j++){
+          var c2=cookies2[j].trim();
+          if(c2.indexOf(key+"_"+sid+"=")===0){
+            var name2=c2.substring(0,c2.indexOf("="));
+            document.cookie=name2+"=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
+          }
+        }
+        // Also check array
+        var arr=JSON.parse(localStorage.getItem(key+"_arr")||"[]");
+        var newArr=[];
+        for(var k=0;k<arr.length;k++){
+          if(arr[k].sid!==sid) newArr.push(arr[k]);
+        }
+        localStorage.setItem(key+"_arr",JSON.stringify(newArr));
+        alert("✅ Спроба видалена для: "+unlock+" (локально)");
+      }
+      history.replaceState(null,"",window.location.pathname);
+    }
+  }catch(e){}
+})();
+
+})();
+</script>
+</body>
+</html>
